@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gainesville Hackathon</title>
+    <style>
+      div {
+        box-sizing: border-box;
+      }
+      #frame {
+        position: fixed;
+        top: 0px;
+        left: 0px;
+        width: 100%;
+        height: 100%;
+        background-color: black;
+        font-family: sans-serif;
+      }
+      #frame__giphy {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        width: 100%;
+        height: 100%;
+        background-image: url(https://media.giphy.com/media/Axqr1hNEmGJiw/source.gif);
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        opacity: 0.3;
+      }
+      #frame__tweet {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        top: 0px;
+        left: 0px;
+        width: 100%;
+        height: 100%;
+      }
+      #frame__tweet__block {
+        display: flex;
+        align-items: flex-start;
+        flex-direction: column;
+        margin-top: 100px;
+        max-width: 80%;
+      }
+      #frame__tweet__block__user {
+        display: flex;
+        align-items: stretch;
+      }
+      #frame__tweet__block__user__thumbnail {
+        width: 150px;
+        height: 150px;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-color: white;
+      }
+      #frame__tweet__block__user__name {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-top-right-radius: 25px;
+        padding: 16px;
+        color: black;
+        font-size: 64px;
+        background-color: rgba(255,255,255,0.8);
+      }
+      #frame__tweet__block__text {
+        border-top-right-radius: 50px;
+        border-bottom-left-radius: 50px;
+        border-bottom-right-radius: 50px;
+        max-width: 100%;
+        padding: 32px;
+        background-color: rgba(255,255,255,0.2);
+        color: white;
+        font-size: 64px;
+        overflow-x: hidden;
+        text-overflow: ellipsis;
+      }
+      #frame__hashtag {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        bottom: 0px;
+        left: 0px;
+        border-top-right-radius: 16px;
+        padding: 16px;
+        background-color: white;
+      }
+      #frame__hashtag__text {
+        margin-left: 16px;
+        font-size: 32px;
+        color: black;
+      }
+      #frame__powered {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        bottom: 0px;
+        right: 0px;
+        border-top-left-radius: 16px;
+        padding: 16px;
+        background-color: black;
+      }
+      #frame__powered__text {
+        margin-left: 16px;
+        font-size: 32px;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="frame">
+      <div id="frame__giphy"></div>
+      <div id="frame__tweet">
+        <div id="frame__tweet__block">
+          <div id="frame__tweet__block__user">
+            <div
+              id="frame__tweet__block__user__thumbnail"
+              style="background-image: url(https://pbs.twimg.com/profile_images/892430488714985473/LqGfY5LB_400x400.jpg);"
+            ></div>
+            <div id="frame__tweet__block__user__name">@futusign</div>
+          </div>
+          <div id="frame__tweet__block__text">
+            Start by tweeting with hashtag below
+          </div>
+        </div>
+      </div>
+      <div id="frame__hashtag">
+        <img
+          src="https://upload.wikimedia.org/wikipedia/en/thumb/9/9f/Twitter_bird_logo_2012.svg/1259px-Twitter_bird_logo_2012.svg.png"
+          height="64px";
+          width="auto";
+        />
+        <div id="frame__hashtag__text">
+          Tweet with #example
+        </div>
+      </div>
+      <div id="frame__powered">
+        <img
+          src="https://www.gannett-cdn.com/-mm-/4b297a8c3e9999387e7bd591025378e50634ffe7/c=58-0-715-876&r=537&c=0-0-534-712/local/-/media/2016/05/03/USATODAY/USATODAY/635978653562173857-GIPHY-Icon-Black.png"
+          height="64px";
+          width="auto";
+        />
+        <div id="frame__powered__text">
+          Powered by GIPHY
+        </div>
+      </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/6.23.0/polyfill.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/2.0.3/fetch.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        var lastId = null;
+        var giphyEl = document.getElementById('frame__giphy');
+        var thumbnailEl = document.getElementById('frame__tweet__block__user__thumbnail');
+        var nameEl = document.getElementById('frame__tweet__block__user__name');
+        var textEl = document.getElementById('frame__tweet__block__text');
+        loop();
+        window.setInterval(loop, 10 * 6000);
+        function loop() {
+          tweet()
+          .then(function(o) {
+            if (o.id !== lastId) {
+              lastId = o.id;
+              return translate(o)
+              .then(render);
+            } else {
+              return Promise.resolve();
+            }
+          })
+          .catch(function() {});
+        }
+        function tweet() {
+          return window.fetch('https://us-central1-gainesville-hackathon.cloudfunctions.net/app/tweet')
+          .then(function(response) {
+            return response.text()
+            .then(function(text) {
+              return JSON.parse(text);
+            });
+          });
+        }
+        function translate(o) {
+          return window.fetch('https://api.giphy.com/v1/gifs/translate?api_key=096b3816ac3a4571875fecfe03c9a338&s=' + encodeURIComponent(o.text))
+          .then(function(response) {
+            return response.text()
+            .then(function(text) {
+              var obj = JSON.parse(text);
+              return {
+                bg: obj.data.images.original.url,
+                thumb: o.thumb,
+                name: o.name,
+                text: o.text
+              };
+            });
+          });
+        }
+        function render(o) {
+          giphyEl.style.backgroundImage = 'url(' + o.bg + ')';
+          thumbnailEl.style.backgroundImage = 'url(' + o.thumb + ')';
+          nameEl.innerHTML = '@';
+          nameEl.appendChild(document.createTextNode(o.name));
+          textEl.innerHTML = '';
+          textEl.appendChild(document.createTextNode(o.text));
+        }
+      });
+    </script>
+  </body>
+</html>
